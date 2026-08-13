@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sous notre ciel — pour Julia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=EB+Garamond:ital,wght@0,400;1,400;1,500&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0a0e27;
+    --indigo:#141b3b;
+    --horizon:#0d1f2a;
+    --gold:#e4c88a;
+    --gold-soft:#c9ad72;
+    --ember:#e0805a;
+    --parchment:#f3efe4;
+    --rose:#c9707e;
+    --muted:#9aa3c2;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--navy-deep);
+    color:var(--parchment);
+    font-family:'EB Garamond', serif;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001s !important; transition-duration:0.001s !important;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    width:100%;
+    height:100svh;
+    min-height:560px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  #sky{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .hero-top{
+    position:relative;
+    z-index:3;
+    text-align:center;
+    padding:clamp(24px,5vh,56px) 20px 10px;
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:'Cormorant Garamond', serif;
+    letter-spacing:0.32em;
+    text-transform:uppercase;
+    font-size:12px;
+    color:var(--gold-soft);
+    opacity:0.85;
+  }
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:clamp(28px,5.2vw,52px);
+    margin-top:10px;
+    color:var(--parchment);
+    text-shadow:0 0 30px rgba(228,200,138,0.15);
+  }
+  .toggle-row{
+    position:relative;
+    z-index:3;
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+    pointer-events:auto;
+    flex-wrap:wrap;
+    justify-content:center;
+    padding:0 16px;
+  }
+  .toggle-btn{
+    font-family:'Cormorant Garamond', serif;
+    letter-spacing:0.08em;
+    font-size:14px;
+    background:rgba(20,27,59,0.55);
+    border:1px solid rgba(228,200,138,0.35);
+    color:var(--muted);
+    padding:10px 20px;
+    border-radius:999px;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    transition:all 0.35s ease;
+  }
+  .toggle-btn.active{
+    color:var(--navy-deep);
+    background:var(--gold);
+    border-color:var(--gold);
+    box-shadow:0 0 22px rgba(228,200,138,0.45);
+  }
+  .toggle-btn:hover{ color:var(--parchment); border-color:var(--gold);}
+  .toggle-btn.active:hover{ color:var(--navy-deep); }
+
+  .time-row{
+    position:relative;
+    z-index:3;
+    margin-top:14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Cormorant Garamond', serif;
+    font-size:13px;
+    color:var(--muted);
+    pointer-events:auto;
+  }
+  .time-row input[type=range]{
+    width:140px;
+    accent-color:var(--gold);
+  }
+  #timeLabel{ min-width:48px; color:var(--gold-soft); text-align:left;}
+
+  .hero-bottom{
+    margin-top:auto;
+    position:relative;
+    z-index:3;
+    width:100%;
+    text-align:center;
+    padding-bottom:18px;
+    pointer-events:none;
+  }
+  .place-caption{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:14px;
+    color:var(--muted);
+    letter-spacing:0.03em;
+  }
+  .scroll-cue{
+    margin-top:8px;
+    font-size:20px;
+    color:var(--gold-soft);
+    animation:bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob{ 0%,100%{transform:translateY(0); opacity:0.6;} 50%{transform:translateY(6px); opacity:1;} }
+
+  .star-tooltip{
+    position:fixed;
+    z-index:20;
+    pointer-events:none;
+    background:rgba(10,14,39,0.92);
+    border:1px solid rgba(228,200,138,0.4);
+    color:var(--parchment);
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:14px;
+    padding:8px 14px;
+    border-radius:8px;
+    max-width:220px;
+    opacity:0;
+    transition:opacity 0.2s ease;
+    transform:translate(-50%,-115%);
+  }
+  .star-tooltip.show{ opacity:1; }
+  .star-tooltip b{ font-style:normal; color:var(--gold); display:block; font-size:15px; margin-bottom:2px;}
+
+  /* ---------- CONSTELLATION NOTE ---------- */
+  .note{
+    max-width:640px;
+    margin:0 auto;
+    padding:110px 24px;
+    text-align:center;
+  }
+  .note .tag{
+    font-family:'Cormorant Garamond', serif;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    font-size:11px;
+    color:var(--rose);
+  }
+  .note p{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:clamp(19px,2.6vw,26px);
+    line-height:1.6;
+    margin-top:16px;
+    color:var(--parchment);
+    opacity:0;
+    transform:translateY(16px);
+    transition:opacity 1s ease, transform 1s ease;
+  }
+  .note p.reveal{ opacity:1; transform:translateY(0); }
+
+  /* ---------- LETTER ---------- */
+  .letter{
+    position:relative;
+    max-width:660px;
+    margin:0 auto;
+    padding:40px 26px 140px;
+  }
+  .letter .divider{
+    width:1px;
+    height:70px;
+    background:linear-gradient(to bottom, transparent, var(--gold-soft), transparent);
+    margin:0 auto 50px;
+    opacity:0;
+    transition:opacity 1.2s ease;
+  }
+  .letter .divider.reveal{ opacity:0.6; }
+  .letter p{
+    font-family:'EB Garamond', serif;
+    font-style:italic;
+    font-size:clamp(19px,2.7vw,25px);
+    line-height:1.9;
+    text-align:center;
+    color:var(--parchment);
+    opacity:0;
+    transform:translateY(20px);
+    transition:opacity 1.1s ease, transform 1.1s ease;
+  }
+  .letter p.reveal{ opacity:1; transform:translateY(0); }
+  .sun-word{
+    font-family:'Mrs Saint Delafield', cursive;
+    font-size:1.5em;
+    color:var(--ember);
+    text-shadow:0 0 18px rgba(224,128,90,0.35);
+  }
+
+  .signature{
+    text-align:center;
+    margin-top:70px;
+    opacity:0;
+    transform:translateY(16px);
+    transition:opacity 1.1s ease 0.2s, transform 1.1s ease 0.2s;
+  }
+  .signature.reveal{ opacity:1; transform:translateY(0); }
+  .signature .from{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:14px;
+    color:var(--muted);
+    letter-spacing:0.05em;
+  }
+  .signature .names{
+    font-family:'Mrs Saint Delafield', cursive;
+    font-size:clamp(34px,6vw,52px);
+    color:var(--gold);
+    margin-top:6px;
+    text-shadow:0 0 24px rgba(228,200,138,0.25);
+  }
+  .signature .date{
+    margin-top:10px;
+    font-family:'Cormorant Garamond', serif;
+    font-size:12px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  footer{
+    text-align:center;
+    padding:30px 20px 40px;
+    font-family:'Cormorant Garamond', serif;
+    font-size:11px;
+    letter-spacing:0.15em;
+    color:rgba(154,163,194,0.5);
+  }
+
+  .sparkle{
+    position:fixed;
+    top:0; left:0;
+    pointer-events:none;
+    z-index:50;
+  }
+
+  :focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <canvas id="sky"></canvas>
+
+  <div class="hero-top">
+    <div class="eyebrow">Saint-Pierre &amp; Saint-Clotilde, La Réunion</div>
+    <h1 id="heroTitle">Sous notre ciel</h1>
+  </div>
+
+  <div class="toggle-row">
+    <button class="toggle-btn active" id="btnUs" aria-pressed="true">2 juin 2026 · nous deux</button>
+    <button class="toggle-btn" id="btnHer" aria-pressed="false">2 septembre 2010 · ta naissance</button>
+  </div>
+
+  <div class="time-row">
+    <span>18h</span>
+    <input type="range" id="timeSlider" min="18" max="23.98" step="0.05" value="21">
+    <span>minuit</span>
+    <span id="timeLabel">21h00</span>
+  </div>
+
+  <div class="hero-bottom">
+    <div class="place-caption" id="placeCaption">Le ciel au-dessus de Saint-Pierre, 21h00</div>
+    <div class="scroll-cue">⌄</div>
+  </div>
+</section>
+
+<section class="note">
+  <div class="tag">Le Scorpion</div>
+  <p id="noteText">Tu m'as appris à le reconnaître, un soir, du bout du doigt tendu vers le ciel. Depuis, c'est la première constellation que je cherche — et la seule que je n'oublierai jamais.</p>
+</section>
+
+<section class="letter">
+  <div class="divider"></div>
+  <p>Je t'aime, ma chérie — mais je sais que c'est toi qui aimes les étoiles.</p>
+  <p>Ce que je sais, moi, c'est que tu es aussi rayonnante que la plus lumineuse d'entre elles.</p>
+  <p>En fait, pour moi, tu es mon <span class="sun-word">soleil</span>.</p>
+
+  <div class="signature">
+    <div class="from">Toujours,</div>
+    <div class="names">Matthew</div>
+    <div class="date">pour Julia</div>
+  </div>
+</section>
+
+<footer>FAIT AVEC AMOUR À LA RÉUNION</footer>
+
+<div class="star-tooltip" id="tooltip"></div>
+
+<script>
+/* =========================================================
+   ASTRONOMY — real RA/Dec, real alt-az projection
+   ========================================================= */
+const DEG = Math.PI/180, RAD = 180/Math.PI;
+
+const STARS = [
+  // Scorpius — the special one
+  {n:"Antares",   ra:16.489, dec:-26.43, mag:1.06, g:"sco", note:"Le cœur du Scorpion — une géante rouge."},
+  {n:"Graffias",  ra:16.090, dec:-19.80, mag:2.56, g:"sco", note:"La pince nord du Scorpion."},
+  {n:"Dschubba",  ra:16.005, dec:-22.62, mag:2.29, g:"sco", note:"Le front du Scorpion."},
+  {n:"Pi Sco",    ra:15.980, dec:-26.11, mag:2.89, g:"sco"},
+  {n:"Nu Sco",    ra:16.200, dec:-19.46, mag:4.00, g:"sco"},
+  {n:"Sigma Sco", ra:16.350, dec:-25.59, mag:2.89, g:"sco"},
+  {n:"Tau Sco",   ra:16.600, dec:-28.22, mag:2.82, g:"sco"},
+  {n:"Epsilon Sco",ra:16.837, dec:-34.29, mag:2.29, g:"sco"},
+  {n:"Mu1 Sco",   ra:16.865, dec:-38.04, mag:3.00, g:"sco"},
+  {n:"Zeta2 Sco", ra:16.910, dec:-42.36, mag:3.62, g:"sco"},
+  {n:"Eta Sco",   ra:17.202, dec:-43.24, mag:3.32, g:"sco"},
+  {n:"Sargas",    ra:17.622, dec:-43.00, mag:1.87, g:"sco", note:"Là où la queue commence à s'enrouler."},
+  {n:"Kappa Sco", ra:17.708, dec:-39.03, mag:2.39, g:"sco"},
+  {n:"Iota1 Sco", ra:17.793, dec:-40.13, mag:3.03, g:"sco"},
+  {n:"Lesath",    ra:17.513, dec:-37.30, mag:2.70, g:"sco"},
+  {n:"Shaula",    ra:17.560, dec:-37.10, mag:1.63, g:"sco", note:"Le dard du Scorpion."},
+
+  // Sagittarius — la théière, juste à côté
+  {n:"Alnasl",        ra:18.298, dec:-30.42, mag:2.99, g:"sgr"},
+  {n:"Kaus Media",    ra:18.350, dec:-29.83, mag:2.72, g:"sgr"},
+  {n:"Kaus Australis",ra:18.403, dec:-34.38, mag:1.85, g:"sgr"},
+  {n:"Kaus Borealis", ra:18.466, dec:-25.42, mag:2.81, g:"sgr"},
+  {n:"Nunki",         ra:18.921, dec:-26.30, mag:2.05, g:"sgr"},
+  {n:"Ascella",       ra:19.043, dec:-29.88, mag:2.60, g:"sgr"},
+  {n:"Phi Sgr",       ra:18.761, dec:-26.99, mag:3.17, g:"sgr"},
+  {n:"Tau Sgr",       ra:19.113, dec:-27.67, mag:3.32, g:"sgr"},
+
+  // Southern Cross — le ciel austral
+  {n:"Acrux",  ra:12.443, dec:-63.10, mag:0.77, g:"cru"},
+  {n:"Gacrux", ra:12.519, dec:-57.11, mag:1.63, g:"cru"},
+  {n:"Mimosa", ra:12.795, dec:-59.69, mag:1.25, g:"cru"},
+  {n:"Imai",   ra:12.252, dec:-58.75, mag:2.79, g:"cru"},
+
+  // Centaurus pointers
+  {n:"Rigil Kentaurus", ra:14.660, dec:-60.83, mag:-0.27, g:"cen"},
+  {n:"Hadar",           ra:14.064, dec:-60.37, mag:0.61,  g:"cen"},
+
+  // Libra
+  {n:"Zubenelgenubi",  ra:14.848, dec:-16.04, mag:2.75, g:"lib"},
+  {n:"Zubeneschamali", ra:15.283, dec:-9.38,  mag:2.61, g:"lib"},
+
+  // Virgo — ton signe
+  {n:"Spica", ra:13.420, dec:-11.16, mag:0.98, g:"vir", note:"L'étoile de la Vierge — ton signe."},
+
+  // Vega — l'étoile des vœux
+  {n:"Vega", ra:18.615, dec:38.78, mag:0.03, g:"misc", note:"L'étoile des vœux."}
+];
+
+const LINES = {
+  sco: [["Pi Sco","Dschubba"],["Dschubba","Graffias"],["Graffias","Nu Sco"],
+        ["Dschubba","Sigma Sco"],["Sigma Sco","Antares"],["Antares","Tau Sco"],
+        ["Tau Sco","Epsilon Sco"],["Epsilon Sco","Mu1 Sco"],["Mu1 Sco","Zeta2 Sco"],
+        ["Zeta2 Sco","Eta Sco"],["Eta Sco","Sargas"],["Sargas","Iota1 Sco"],
+        ["Iota1 Sco","Kappa Sco"],["Kappa Sco","Lesath"],["Lesath","Shaula"]],
+  sgr: [["Alnasl","Kaus Media"],["Kaus Media","Kaus Australis"],["Kaus Australis","Ascella"],
+        ["Ascella","Tau Sgr"],["Tau Sgr","Nunki"],["Nunki","Phi Sgr"],["Phi Sgr","Kaus Borealis"],
+        ["Kaus Borealis","Kaus Media"]],
+  cru: [["Acrux","Gacrux"],["Mimosa","Imai"]],
+  cen: [["Rigil Kentaurus","Hadar"]],
+  lib: [["Zubenelgenubi","Zubeneschamali"]]
+};
+
+// seeded background stars (decorative, fixed each load)
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const rng = mulberry32(1337);
+const BG_STARS = [];
+for(let i=0;i<650;i++){
+  BG_STARS.push({ra: rng()*24, dec: -90+rng()*140, mag: 3.6+rng()*3.2, tw: rng()*Math.PI*2});
+}
+
+const PLACES = {
+  us:  { name:"Saint-Pierre",   lat:-21.34, lon:55.48, y:2026, m:6, d:2,  label:"2 juin 2026 · nous deux",     caption:"Le ciel au-dessus de Saint-Pierre" },
+  her: { name:"Saint-Clotilde", lat:-20.90, lon:55.53, y:2010, m:9, d:2,  label:"2 septembre 2010 · ta naissance", caption:"Le ciel au-dessus de Saint-Clotilde, le jour de ta naissance" }
+};
+let current = "us";
+let hour = 21.0; // local hour, Réunion is UTC+4 (no DST)
+
+function julianDate(y,m,d,hourUT){
+  if(m<=2){ y-=1; m+=12; }
+  const A = Math.floor(y/100), B = 2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + d + B - 1524.5 + hourUT/24;
+}
+function gmstHours(jd){
+  const D = jd - 2451545.0;
+  let g = 18.697374558 + 24.06570982441908*D;
+  g = g % 24; if(g<0) g+=24;
+  return g;
+}
+function altAz(raH, decDeg, latDeg, lstH){
+  let ha = (lstH - raH)*15; // degrees
+  const haR = ha*DEG, decR = decDeg*DEG, latR = latDeg*DEG;
+  const sinAlt = Math.sin(decR)*Math.sin(latR) + Math.cos(decR)*Math.cos(latR)*Math.cos(haR);
+  const alt = Math.asin(Math.max(-1,Math.min(1,sinAlt)));
+  let cosA = (Math.sin(decR) - Math.sin(alt)*Math.sin(latR)) / (Math.cos(alt)*Math.cos(latR));
+  cosA = Math.max(-1,Math.min(1,cosA));
+  let A = Math.acos(cosA);
+  if(Math.sin(haR) > 0) A = 2*Math.PI - A;
+  return { alt: alt*RAD, az: A*RAD };
+}
+
+/* =========================================================
+   RENDERING
+   ========================================================= */
+const canvas = document.getElementById('sky');
+const ctx = canvas.getContext('2d');
+let W, H, cx, cy, R;
+let projected = { named:[], bg:[] };
+
+function resize(){
+  W = canvas.width = canvas.offsetWidth * devicePixelRatio;
+  H = canvas.height = canvas.offsetHeight * devicePixelRatio;
+  cx = W/2;
+  const topPad = H*0.30, botPad = H*0.14;
+  cy = topPad + (H-topPad-botPad)/2;
+  R = Math.min(W*0.46, (H-topPad-botPad)/2);
+  compute();
+}
+
+function compute(){
+  const p = PLACES[current];
+  const jdUT = julianDate(p.y,p.m,p.d, hour-4); // Réunion UTC+4
+  const lst = gmstHours(jdUT) + p.lon/15;
+
+  projected.named = STARS.map(s=>{
+    const {alt,az} = altAz(s.ra, s.dec, p.lat, ((lst%24)+24)%24);
+    return {...s, alt, az};
+  }).filter(s=>s.alt > -2);
+
+  projected.bg = BG_STARS.map(s=>{
+    const {alt,az} = altAz(s.ra, s.dec, p.lat, ((lst%24)+24)%24);
+    return {alt, az, mag:s.mag, tw:s.tw};
+  }).filter(s=>s.alt > -1);
+}
+
+function toXY(alt, az){
+  const r = ((90-alt)/90) * R;
+  const a = az*DEG;
+  return [cx + r*Math.sin(a), cy - r*Math.cos(a)];
+}
+
+let t0 = performance.now();
+function draw(now){
+  const dt = (now-t0)/1000;
+  ctx.clearRect(0,0,W,H);
+
+  // sky gradient
+  const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.15);
+  grad.addColorStop(0,'#1a2350');
+  grad.addColorStop(0.55,'#121834');
+  grad.addColorStop(1,'#080a1c');
+  ctx.beginPath();
+  ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // clip to circle
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.clip();
+
+  // background stars
+  projected.bg.forEach((s,i)=>{
+    const [x,y] = toXY(s.alt,s.az);
+    const twinkle = 0.55 + 0.45*Math.sin(dt*0.8 + s.tw);
+    const size = Math.max(0.4, (5-s.mag)*0.35);
+    ctx.globalAlpha = Math.max(0.12, twinkle*(1-s.mag/7));
+    ctx.fillStyle = '#cfd6f2';
+    ctx.beginPath();
+    ctx.arc(x,y,size,0,Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // constellation lines (subtle)
+  const named = projected.named;
+  const byName = {}; named.forEach(s=>byName[s.n]=s);
+  Object.keys(LINES).forEach(g=>{
+    const isSco = g==='sco';
+    ctx.strokeStyle = isSco ? 'rgba(228,200,138,0.55)' : 'rgba(154,163,194,0.28)';
+    ctx.lineWidth = isSco ? 1.6 : 1;
+    LINES[g].forEach(([a,b])=>{
+      const sa = byName[a], sb = byName[b];
+      if(sa && sb && sa.alt>0 && sb.alt>0){
+        const [x1,y1]=toXY(sa.alt,sa.az), [x2,y2]=toXY(sb.alt,sb.az);
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      }
+    });
+  });
+
+  // named stars
+  const screenPos = [];
+  named.forEach((s,i)=>{
+    if(s.alt<0) return;
+    const [x,y] = toXY(s.alt,s.az);
+    const isSco = s.g==='sco';
+    const baseSize = Math.max(1.2, (4.2-s.mag)*0.9);
+    const twinkle = 0.75 + 0.25*Math.sin(dt*1.1 + i);
+
+    if(isSco){
+      const glow = ctx.createRadialGradient(x,y,0,x,y,baseSize*4.5);
+      glow.addColorStop(0,'rgba(228,200,138,0.55)');
+      glow.addColorStop(1,'rgba(228,200,138,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(x,y,baseSize*4.5,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = twinkle;
+    ctx.fillStyle = isSco ? '#f4e3b0' : (s.g==='vir'||s.g==='misc' ? '#e8b8bf' : '#e9ecff');
+    ctx.beginPath(); ctx.arc(x,y,baseSize,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    screenPos.push({x,y,r:Math.max(8,baseSize*3),star:s});
+  });
+  window.__starScreen = screenPos;
+
+  ctx.restore();
+
+  // horizon ring
+  ctx.beginPath();
+  ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.strokeStyle = 'rgba(228,200,138,0.18)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // island silhouette at bottom of viewport
+  drawIsland();
+
+  requestAnimationFrame(draw);
+}
+
+function drawIsland(){
+  const baseY = H*0.985;
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  ctx.lineTo(0, baseY);
+  ctx.lineTo(W*0.10, baseY-H*0.02);
+  ctx.lineTo(W*0.20, baseY-H*0.075);
+  ctx.lineTo(W*0.30, baseY-H*0.04);
+  ctx.lineTo(W*0.42, baseY-H*0.11);
+  ctx.lineTo(W*0.52, baseY-H*0.05);
+  ctx.lineTo(W*0.65, baseY-H*0.09);
+  ctx.lineTo(W*0.78, baseY-H*0.03);
+  ctx.lineTo(W*0.90, baseY-H*0.06);
+  ctx.lineTo(W, baseY-H*0.015);
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  ctx.fillStyle = '#070a14';
+  ctx.fill();
+
+  // two tiny warm lights, like a home
+  ctx.fillStyle = 'rgba(224,128,90,0.75)';
+  [[0.44, 0.018],[0.455,0.02]].forEach(([fx,fh])=>{
+    ctx.beginPath();
+    ctx.arc(W*fx, baseY-H*fh, Math.max(1,W*0.0016), 0, Math.PI*2);
+    ctx.fill();
+  });
+}
+
+/* =========================================================
+   INTERACTION
+   ========================================================= */
+const tooltip = document.getElementById('tooltip');
+canvas.addEventListener('mousemove', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX-rect.left)*devicePixelRatio;
+  const y = (e.clientY-rect.top)*devicePixelRatio;
+  const hit = (window.__starScreen||[]).find(p=> Math.hypot(p.x-x,p.y-y) < p.r);
+  if(hit && hit.star.note){
+    tooltip.innerHTML = `<b>${hit.star.n}</b>${hit.star.note}`;
+    tooltip.style.left = e.clientX+'px';
+    tooltip.style.top = e.clientY+'px';
+    tooltip.classList.add('show');
+    canvas.style.cursor = 'pointer';
+  } else {
+    tooltip.classList.remove('show');
+    canvas.style.cursor = 'default';
+  }
+});
+canvas.addEventListener('mouseleave', ()=> tooltip.classList.remove('show'));
+canvas.addEventListener('touchstart', e=>{
+  const t = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const x = (t.clientX-rect.left)*devicePixelRatio;
+  const y = (t.clientY-rect.top)*devicePixelRatio;
+  const hit = (window.__starScreen||[]).find(p=> Math.hypot(p.x-x,p.y-y) < p.r*1.6);
+  if(hit && hit.star.note){
+    tooltip.innerHTML = `<b>${hit.star.n}</b>${hit.star.note}`;
+    tooltip.style.left = t.clientX+'px';
+    tooltip.style.top = t.clientY+'px';
+    tooltip.classList.add('show');
+    setTimeout(()=>tooltip.classList.remove('show'), 2600);
+  }
+}, {passive:true});
+
+function fmtTime(h){
+  const hh = Math.floor(h);
+  const mm = Math.round((h-hh)*60);
+  return hh+"h"+String(mm).padStart(2,'0');
+}
+function updateUI(){
+  const p = PLACES[current];
+  document.getElementById('placeCaption').textContent = `${p.caption}, ${fmtTime(hour)}`;
+  document.getElementById('timeLabel').textContent = fmtTime(hour);
+  document.getElementById('btnUs').classList.toggle('active', current==='us');
+  document.getElementById('btnUs').setAttribute('aria-pressed', current==='us');
+  document.getElementById('btnHer').classList.toggle('active', current==='her');
+  document.getElementById('btnHer').setAttribute('aria-pressed', current==='her');
+}
+document.getElementById('btnUs').addEventListener('click', ()=>{ current='us'; compute(); updateUI(); });
+document.getElementById('btnHer').addEventListener('click', ()=>{ current='her'; compute(); updateUI(); });
+document.getElementById('timeSlider').addEventListener('input', e=>{
+  hour = parseFloat(e.target.value); compute(); updateUI();
+});
+
+window.addEventListener('resize', resize);
+resize();
+updateUI();
+requestAnimationFrame(draw);
+
+/* =========================================================
+   SCROLL REVEAL
+   ========================================================= */
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(en=>{ if(en.isIntersecting) en.target.classList.add('reveal'); });
+},{threshold:0.35});
+document.querySelectorAll('.note p, .letter p, .letter .divider, .signature').forEach(el=>io.observe(el));
+
+/* =========================================================
+   STARDUST SPARKLE (soft, tasteful "confetti")
+   ========================================================= */
+function sparkleBurst(){
+  const layer = document.createElement('canvas');
+  layer.className = 'sparkle';
+  layer.width = innerWidth*devicePixelRatio;
+  layer.height = innerHeight*devicePixelRatio;
+  layer.style.width = innerWidth+'px';
+  layer.style.height = innerHeight+'px';
+  document.body.appendChild(layer);
+  const c = layer.getContext('2d');
+  const N = 70;
+  const parts = Array.from({length:N},()=>({
+    x: Math.random()*layer.width,
+    y: -20*devicePixelRatio - Math.random()*layer.height*0.3,
+    vy: (0.6+Math.random()*1.1)*devicePixelRatio,
+    vx: (Math.random()-0.5)*0.4*devicePixelRatio,
+    size: (1+Math.random()*2.2)*devicePixelRatio,
+    life: 0,
+    max: 140+Math.random()*100,
+    hue: Math.random()<0.5 ? '228,200,138' : '243,239,228'
+  }));
+  let frame=0;
+  function step(){
+    frame++;
+    c.clearRect(0,0,layer.width,layer.height);
+    let alive=false;
+    parts.forEach(p=>{
+      if(p.life>p.max) return;
+      alive=true;
+      p.x+=p.vx; p.y+=p.vy; p.life++;
+      const a = Math.max(0, 1-p.life/p.max);
+      c.globalAlpha = a;
+      c.fillStyle = `rgba(${p.hue},1)`;
+      c.beginPath();
+      c.arc(p.x,p.y,p.size,0,Math.PI*2);
+      c.fill();
+    });
+    c.globalAlpha=1;
+    if(alive && frame<400) requestAnimationFrame(step);
+    else layer.remove();
+  }
+  step();
+}
+window.addEventListener('load', ()=> setTimeout(sparkleBurst, 500));
+</script>
+</body>
+</html>
