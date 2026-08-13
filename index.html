@@ -278,9 +278,148 @@
   }
 
   :focus-visible{ outline:2px solid var(--gold); outline-offset:3px; }
+
+  /* ---------- GATE ---------- */
+  #gate{
+    position:fixed; inset:0; z-index:100;
+    background:radial-gradient(ellipse at 50% 40%, #1a2350 0%, #0a0e27 65%, #050712 100%);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    padding:24px;
+    text-align:center;
+    transition:opacity 0.9s ease, visibility 0.9s ease;
+  }
+  #gate.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  #gate .gate-star{
+    font-size:22px; color:var(--gold); margin-bottom:18px;
+    animation:bob 3s ease-in-out infinite;
+  }
+  #gate h2{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic; font-weight:500;
+    font-size:clamp(22px,4vw,30px);
+    color:var(--parchment);
+    max-width:420px;
+    line-height:1.4;
+  }
+  #gate .gate-sub{
+    font-family:'Cormorant Garamond', serif;
+    font-size:12px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-top:10px;
+  }
+  #gateForm{
+    margin-top:30px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  #gatePass{
+    font-family:'Cormorant Garamond', serif;
+    font-size:18px;
+    letter-spacing:0.12em;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(228,200,138,0.35);
+    color:var(--parchment);
+    padding:12px 16px;
+    border-radius:10px;
+    text-align:center;
+    width:190px;
+    outline:none;
+  }
+  #gatePass:focus{ border-color:var(--gold); }
+  #gateForm button{
+    font-family:'Cormorant Garamond', serif;
+    font-size:15px;
+    background:var(--gold);
+    color:var(--navy-deep);
+    border:none;
+    padding:12px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  #gateForm button:hover{ box-shadow:0 0 18px rgba(228,200,138,0.5); transform:translateY(-1px); }
+  #gateError{
+    margin-top:14px;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:13px;
+    color:var(--rose);
+    height:16px;
+    opacity:0;
+    transition:opacity 0.3s ease;
+  }
+  #gateError.show{ opacity:1; }
+  body.locked{ overflow:hidden; height:100vh; }
+
+  /* ---------- COUNTER ---------- */
+  .counter{
+    max-width:640px;
+    margin:0 auto;
+    padding:0 24px 110px;
+    text-align:center;
+  }
+  .counter .tag{
+    font-family:'Cormorant Garamond', serif;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    font-size:11px;
+    color:var(--rose);
+  }
+  .counter .headline{
+    margin-top:16px;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:clamp(20px,3vw,26px);
+    color:var(--parchment);
+    line-height:1.5;
+  }
+  .counter .big-num{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-style:normal;
+    font-size:clamp(48px,9vw,84px);
+    color:var(--gold);
+    text-shadow:0 0 30px rgba(228,200,138,0.25);
+    line-height:1;
+    display:block;
+    margin:6px 0;
+  }
+  .conversions{
+    margin-top:36px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+  }
+  .conversion-line{
+    font-family:'Cormorant Garamond', serif;
+    font-size:clamp(14px,2vw,17px);
+    color:var(--muted);
+    letter-spacing:0.02em;
+  }
+  .conversion-line b{
+    color:var(--gold-soft);
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
 </style>
 </head>
-<body>
+<body class="locked">
+
+<div id="gate">
+  <div class="gate-star">✦</div>
+  <h2>Pour ouvrir ce ciel,<br>il faut connaître une date.</h2>
+  <div class="gate-sub">Indice : le jour où tout a commencé</div>
+  <form id="gateForm">
+    <input type="text" id="gatePass" placeholder="JJMMAAAA" inputmode="numeric" autocomplete="off">
+    <button type="submit">Ouvrir</button>
+  </form>
+  <div id="gateError">Ce n'est pas la bonne date... essaie encore.</div>
+</div>
 
 <section class="hero">
   <canvas id="sky"></canvas>
@@ -311,6 +450,19 @@
 <section class="note">
   <div class="tag">Le Scorpion</div>
   <p id="noteText">Tu m'as appris à le reconnaître, un soir, du bout du doigt tendu vers le ciel. Depuis, c'est la première constellation que je cherche — et la seule que je n'oublierai jamais.</p>
+</section>
+
+<section class="counter">
+  <div class="tag">Depuis le 2 juin 2026</div>
+  <div class="headline">
+    Nous voilà, ensemble depuis
+    <span class="big-num" id="counterDays">0</span>
+    jours
+  </div>
+  <div class="conversions">
+    <div class="conversion-line">Soit <b id="counterHMS">0h 00min 00s</b> cumulées, jour après jour</div>
+    <div class="conversion-line">Soit <b id="counterSeconds">0</b> secondes passées à t'aimer</div>
+  </div>
 </section>
 
 <section class="letter">
@@ -711,6 +863,63 @@ function sparkleBurst(){
   step();
 }
 window.addEventListener('load', ()=> setTimeout(sparkleBurst, 500));
+
+/* =========================================================
+   PASSWORD GATE
+   ========================================================= */
+const GATE_PASSWORD = "02062026"; // day you got together, digits only
+
+function normalize(str){
+  return str.trim().toLowerCase().replace(/[\/\-\.\s]/g,'');
+}
+const gate = document.getElementById('gate');
+const gateForm = document.getElementById('gateForm');
+const gatePass = document.getElementById('gatePass');
+const gateError = document.getElementById('gateError');
+
+gateForm.addEventListener('submit', e=>{
+  e.preventDefault();
+  if(normalize(gatePass.value) === normalize(GATE_PASSWORD)){
+    gate.classList.add('hidden');
+    document.body.classList.remove('locked');
+    gateError.classList.remove('show');
+    sparkleBurst();
+  } else {
+    gateError.classList.add('show');
+    gatePass.value = '';
+    gatePass.focus();
+    gate.style.animation = 'none';
+    requestAnimationFrame(()=>{ gate.querySelector('h2').style.transform='translateX(-6px)';
+      setTimeout(()=>{ gate.querySelector('h2').style.transform=''; }, 120);
+    });
+  }
+});
+setTimeout(()=> gatePass.focus(), 400);
+
+/* =========================================================
+   LIVE DISTANCE COUNTER — since 2 June 2026, 00:00 Réunion (UTC+4)
+   ========================================================= */
+const START = new Date(Date.UTC(2026,5,2,0,0,0) - 4*3600*1000); // local midnight in Réunion, as UTC instant
+
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function tickCounter(){
+  const now = new Date();
+  let diffMs = now - START;
+  if(diffMs < 0) diffMs = 0;
+  const totalSeconds = Math.floor(diffMs/1000);
+
+  const days = Math.floor(totalSeconds/86400);
+  const totalHours = Math.floor(totalSeconds/3600);
+  const minutes = Math.floor((totalSeconds%3600)/60);
+  const seconds = totalSeconds%60;
+
+  document.getElementById('counterDays').textContent = days.toLocaleString('fr-FR');
+  document.getElementById('counterHMS').textContent = `${totalHours.toLocaleString('fr-FR')}h ${pad(minutes)}min ${pad(seconds)}s`;
+  document.getElementById('counterSeconds').textContent = totalSeconds.toLocaleString('fr-FR');
+}
+tickCounter();
+setInterval(tickCounter, 1000);
 </script>
 </body>
 </html>
